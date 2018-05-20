@@ -10,6 +10,9 @@ RSpec.describe Question, type: :model do
 
     it { should allow_value(14).for(:level) }
     it { should_not allow_value(15).for(:level) }
+
+    subject { FactoryBot.create(:question) }
+    it { should validate_uniqueness_of :text }
   end
 
 end
