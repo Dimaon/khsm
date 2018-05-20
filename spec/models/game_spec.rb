@@ -107,7 +107,18 @@ RSpec.describe Game, type: :model do
     it ':money' do
       expect(game_w_questions.status).to eq :money
     end
+  end
 
+  context '.previous_level and .current_game_question' do
+    it 'return valid instance of GameQuestion' do
+      q = game_w_questions.current_game_question
+      expect(q).to be_instance_of(GameQuestion)
+    end
+    it ':previous_level' do
+      current_level = game_w_questions.current_level
+      prev_level = game_w_questions.previous_level
+      expect(current_level - 1).to eq prev_level
+    end
   end
 
 end
