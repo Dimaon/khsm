@@ -41,6 +41,13 @@ RSpec.describe Game, type: :model do
       expect(game.game_questions.size).to eq(15)
       expect(game.game_questions.map(&:level)).to eq (0..14).to_a
     end
+
+    it 'correct initialize' do
+      expect(game_w_questions.finished_at).to eq nil
+      expect(game_w_questions.current_level).to eq 0
+      expect(game_w_questions.is_failed).to be_falsey
+      expect(game_w_questions.prize).to eq 0
+    end
   end
 
   # Тесты на основную игровую логику
@@ -109,15 +116,63 @@ RSpec.describe Game, type: :model do
     end
   end
 
-  context '.previous_level and .current_game_question' do
+  context '.current_game_question' do
     it 'return valid instance of GameQuestion' do
       q = game_w_questions.current_game_question
       expect(q).to be_instance_of(GameQuestion)
     end
-    it ':previous_level' do
-      current_level = game_w_questions.current_level
+  end
+
+  context '.previous_level' do
+    it 'correct previous_level' do
       prev_level = game_w_questions.previous_level
-      expect(current_level - 1).to eq prev_level
+      expect(prev_level).to eq -1
+    end
+  end
+
+  context 'answer_current_question!' do
+   let!(:q) { game_w_questions.current_game_question }
+   let!(:level) { game_w_questions.current_level }
+
+    # False если игра закончена
+    it 'return false if finished' do
+      game_w_questions.finished_at = Time.now
+      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to be_falsey
+    end
+
+    # False если время на игру вышло
+    it 'return false if time_out!' do
+      game_w_questions.created_at =  Time.now - (Game::TIME_LIMIT + 1.second)
+      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to be_falsey
+    end
+
+    # Если ответили верно и это не последний уровень
+    it 'correct answer after not final question' do
+      expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to be_truthy
+
+      # Перешли на след. уровень так как предыдущий ответ был верный
+      expect(game_w_questions.current_level).to eq(level + 1)
+      # Можем вызвать save и вернуть true
+      allow(game_w_questions).to receive(:save!).and_return(true)
+    end
+
+    # Если ответили не верно (верный ответ "d")
+    it 'incorrect answer' do
+      expect(game_w_questions.answer_current_question!('c')).to be_falsey
+      # уровень не увеличивается так как предидущий ответ был не верный
+      expect(game_w_questions.current_level).not_to eq(level + 1)
+      #  заканчиваем игру методом finish_game! и возвращаем результаты
+      expect(game_w_questions.prize).to eq 0
+      expect(game_w_questions.is_failed).to be_truthy
+    end
+
+    # Если ответили верно и вопрос последний
+    it 'last question and answer is correct' do
+      15.times { game_w_questions.answer_current_question!(q.correct_answer_key) }
+      #  заканчиваем игру методом finish_game! и возвращаем результаты
+      expect(game_w_questions.current_level).to eq 15
+      expect(game_w_questions.prize).to eq Game::PRIZES[Question::QUESTION_LEVELS.max]
+      expect(game_w_questions.is_failed).to be_falsey
     end
   end
 
