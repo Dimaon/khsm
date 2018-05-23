@@ -62,7 +62,7 @@ RSpec.describe Game, type: :model do
       game_w_questions.answer_current_question!(q.correct_answer_key)
 
       # Перешли на след. уровень так как предидущий ответ был верный
-      expect(game_w_questions.current_level).to eq(level + 1)
+      expect(game_w_questions.current_level).to eq(1) # level + 1
 
       # Ранее текущий вопрос стал предыдущим
       expect(game_w_questions.current_game_question).not_to eq(q)
@@ -118,15 +118,14 @@ RSpec.describe Game, type: :model do
 
   context '.current_game_question' do
     it 'return valid instance of GameQuestion' do
-      q = game_w_questions.current_game_question
-      expect(q).to be_instance_of(GameQuestion)
+      expect(game_w_questions.current_game_question).to be_instance_of(GameQuestion)
+      expect(game_w_questions.current_level).to eq 0
     end
   end
 
   context '.previous_level' do
     it 'correct previous_level' do
-      prev_level = game_w_questions.previous_level
-      expect(prev_level).to eq -1
+      expect(game_w_questions.previous_level).to eq -1
     end
   end
 
@@ -142,7 +141,7 @@ RSpec.describe Game, type: :model do
 
     # False если время на игру вышло
     it 'return false if time_out!' do
-      game_w_questions.created_at =  Time.now - (Game::TIME_LIMIT + 1.second)
+      game_w_questions.created_at =  Time.now - 36.minutes # (Game::TIME_LIMIT + 1.second)
       expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to be_falsey
     end
 
@@ -151,7 +150,7 @@ RSpec.describe Game, type: :model do
       expect(game_w_questions.answer_current_question!(q.correct_answer_key)).to be_truthy
 
       # Перешли на след. уровень так как предыдущий ответ был верный
-      expect(game_w_questions.current_level).to eq(level + 1)
+      expect(game_w_questions.current_level).to eq(1) # level + 1
       # Можем вызвать save и вернуть true
       allow(game_w_questions).to receive(:save!).and_return(true)
     end
@@ -160,7 +159,7 @@ RSpec.describe Game, type: :model do
     it 'incorrect answer' do
       expect(game_w_questions.answer_current_question!('c')).to be_falsey
       # уровень не увеличивается так как предидущий ответ был не верный
-      expect(game_w_questions.current_level).not_to eq(level + 1)
+      expect(game_w_questions.current_level).not_to eq(1)
       #  заканчиваем игру методом finish_game! и возвращаем результаты
       expect(game_w_questions.prize).to eq 0
       expect(game_w_questions.is_failed).to be_truthy
@@ -171,9 +170,8 @@ RSpec.describe Game, type: :model do
       15.times { game_w_questions.answer_current_question!(q.correct_answer_key) }
       #  заканчиваем игру методом finish_game! и возвращаем результаты
       expect(game_w_questions.current_level).to eq 15
-      expect(game_w_questions.prize).to eq Game::PRIZES[Question::QUESTION_LEVELS.max]
+      expect(game_w_questions.prize).to eq 1_000_000 # Game::PRIZES[Question::QUESTION_LEVELS.max]
       expect(game_w_questions.is_failed).to be_falsey
     end
   end
-
 end
