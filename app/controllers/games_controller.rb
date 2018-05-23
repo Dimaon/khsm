@@ -44,7 +44,7 @@ class GamesController < ApplicationController
   # Действие answer принимает ответ на вопрос, единственный обязательный
   # параметр — params[:letter] — буква, которую выбрал игрок.
   def answer
-    # Выясняем у игры, правильно ли оветили
+    # Выясняем у игры, правильно ли ответили
     @answer_is_correct = @game.answer_current_question!(params[:letter])
     @game_question = @game.current_game_question
 
