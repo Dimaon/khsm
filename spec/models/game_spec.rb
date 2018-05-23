@@ -151,8 +151,6 @@ RSpec.describe Game, type: :model do
 
       # Перешли на след. уровень так как предыдущий ответ был верный
       expect(game_w_questions.current_level).to eq(1) # level + 1
-      # Можем вызвать save и вернуть true
-      allow(game_w_questions).to receive(:save!).and_return(true)
     end
 
     # Если ответили не верно (верный ответ "d")
