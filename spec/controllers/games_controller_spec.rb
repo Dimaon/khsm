@@ -42,7 +42,13 @@ RSpec.describe GamesController, type: :controller do
     end
 
     it 'kick from #take_money' do
-      put :answer, id: game_w_questions.id, letter: game_w_questions.current_game_question.correct_answer_key
+      game_w_questions.update_attribute(:current_level, 2)
+
+      put :take_money, id: game_w_questions.id
+
+      user.reload
+      expect(user.balance).to eq(0)
+
       expect(response.status).not_to eq(200)
       expect(response).to redirect_to(new_user_session_path)
       expect(flash[:alert]).to be
@@ -93,21 +99,20 @@ RSpec.describe GamesController, type: :controller do
       expect(flash[:alert]).to be # см. метод set_game
     end
 
-    # не может взять деньги
-    it 'not #take_money' do
+    # Пользователь берет деньги
+    it '#take_money' do
       game_w_questions.update_attribute(:current_level, 2)
 
       put :take_money, id: game_w_questions.id
       game = assigns(:game)
-      expect(game.finished?).to be_falsey
-      expect(game.prize).to eq(0)
+      expect(game.finished?).to be_truthy
+      expect(game.prize).to eq(200)
 
       user.reload
-      expect(user.balance).to eq(0)
+      expect(user.balance).to eq(200)
 
-      expect(response.status).not_to eq(200)
-      expect(response).to redirect_to(new_user_session_path)
-      expect(flash[:alert]).to be
+      expect(response).to redirect_to(user_path(user))
+      expect(flash[:warning]).to be
     end
 
     # Не может начать 2-ую игру
