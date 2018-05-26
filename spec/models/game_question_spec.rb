@@ -91,8 +91,11 @@ RSpec.describe GameQuestion, type: :model do
 
       game_question.add_friend_call
 
+      game_question.help_hash[:friend_call] = 'Василий Петрович считает, что правильный ответ A'
+
       expect(game_question.help_hash).to include(:friend_call)
       expect(game_question.help_hash[:friend_call]).to be
+      expect(game_question.help_hash).to eq({friend_call: 'Василий Петрович считает, что правильный ответ A'})
     end
   end
 
